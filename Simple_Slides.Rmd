@@ -1,0 +1,213 @@
+---
+title: Google Trends Analysis
+subtitle: Pepsi VS Coca Cola
+output: 
+  powerpoint_presentation:
+    reference_doc: New_Template.pptx
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(esquisse)
+library(gtrendsR)
+library(tidyverse)
+library(DT)
+
+```
+
+## **WHAT IS GOOGLE TRENDS?**
+Google Trends is a very useful service for finding what’s popular among users of the Search engine and generating insights. Trending searches by Google users can be used as an information source that could perhaps improve the forecasts. In Google Trends, Google compiles and aggregates its search data, reflecting the interestin certain keywords or concepts.
+
+## **WHY IT IS USEFUL?**
+In the marketing industry, the volume of queries made by users about the products via the search engine could reflect the potential volume of sales of these products. These data could therefore be considered as indicators of consumer purchase intention, both for manufactured goods and for services.
+
+## **WHY WE USING R?**
+Using Google Trends manually is fun. However, it could be time-consuming and tedious if you would like to compare different search terms over different time frames.
+
+
+## **Pepsi VS Coca-Cola **
+
+- Interest Over Time
+- Interest By Country
+- Interest By City
+- Related Queries
+
+## WHAT IS INTEREST OVER TIME?
+The scores awarded by Google Trends on the "interest over time" line graph express the popularity of that term over a specified time range. Google Trends scores are based on the absolute search volume for a term, relative to the number of searches received by Google.
+
+
+
+```{r read_data}
+
+res_ppt <- gtrends(c("Pepsi","Coca cola"),time = "today+5-y")
+iot = res_ppt$interest_over_time
+
+```
+
+
+## INTEREST OVER TIME GRAPH
+
+```{r iot, fig.width=15,fig.height=10}
+
+library(ggplot2)
+
+ggplot(iot) +
+ aes(x = date, y = hits, colour = keyword) +
+ geom_line(size = 1L) +
+ scale_color_hue() +
+ labs(title = "INTEREST OVER TIME FROM PAST 5 YEARS", subtitle = "PEPSI VS COCA-COLA") +
+ theme_minimal()
+
+```
+
+
+## WHAT IS INTEREST BY COUNTRY?
+The scores awarded by Google Trends on the "INTEREST BY COUNTRY" Bar graph express the popularity of that term in different Countries.shows you the score of that keyword in a specific contries. The Bar Graph shows the Top 20 Contries with Highest Score for that term.
+
+
+
+```{r data_ready,include=FALSE}
+
+
+ibc <- res_ppt$interest_by_country
+
+
+ibc$hits <- as.numeric(ibc$hits)
+
+ibcfinal = ibc[!is.na(ibc$hits), ]
+
+ibcfinal_new = ibcfinal[order(-ibcfinal$hits),] #sort by top hits
+ibcfinal_new = ibcfinal_new[1:20,]
+
+
+```
+
+
+
+## INTEREST BY COUNTRY GRAPH
+
+```{r ibcfinal_new,fig.width=15,fig.height=10}
+
+
+library(ggplot2)
+
+ggplot(ibcfinal_new) +
+ aes(x = location, fill = keyword, weight = hits) +
+ geom_bar(position = "dodge") +
+ scale_fill_hue() +
+ labs(title = "Top 20 Countries With High Relative Score ", subtitle = "Pepsi VS Coca Cola") +
+ coord_flip() +
+ theme_minimal()
+
+
+```
+
+
+## RELATED TERMS
+Is used to find NEW keyword ideas (AND even STEAL business from your competitors) Google Trends can reveal the queries people also search for when they search for your term. For example, people searching for “sneakers” also tend to search for “Nike” and “Adidas.”
+
+
+```{r related_terms,include=FALSE}
+
+related_Quaries = res_ppt$related_queries
+
+str(related_Quaries)
+
+#Top Searched Terms
+
+Top_terms = related_Quaries %>%
+            filter(related_queries == "top")
+
+Top_terms$subject = as.numeric(Top_terms$subject)
+
+Top_terms_final = Top_terms[order(-Top_terms$subject),]
+Top_terms_final_20 = Top_terms_final[1:20,]
+
+
+```
+
+## RELATED TERMS GRAPH
+
+```{r Top_terms_final_20,fig.width=15,fig.height=10}
+
+
+library(ggplot2)
+
+ggplot(Top_terms_final_20) +
+ aes(x = value, fill = keyword, weight = subject) +
+ geom_bar(position = "dodge") +
+ scale_fill_hue() +
+ labs(title = "TOP 20 RELATED TERMS PEOPLE SEARCHING", subtitle = "PEPSI VS COCA COLA") +
+ coord_flip() +
+ theme_minimal()
+
+
+```
+
+
+## RISING TERMS
+
+Rising queries are a bit more interesting. Instead of including an index number, there is a percentage or “breakout” associated with each query. This percentage indicates the increase in searches for this query in the time period you've defined, compared against the previous time period
+
+
+
+```{r rising_queries,include=FALSE}
+
+rising_terms = related_Quaries %>%
+  filter(subject == "Breakout")
+
+#filtering the datafrme by pepsi and coca cola
+
+rising_terms_one = rising_terms %>%
+  filter(keyword == "Pepsi")
+
+rising_terms_two = rising_terms %>%
+  filter(keyword == "Coca cola")
+
+rising_one = rising_terms_one %>%
+                select(value,keyword)  
+
+rising_two = rising_terms_two %>%
+                select(value,keyword)  
+
+rising_one_first10 = rising_one[1:10,]
+rising_one_second10 = rising_one[11:20,]
+
+
+
+```
+
+
+
+## RISING TEMRS FOR PEPSI
+
+```{r }
+
+knitr::kable(rising_one_first10)
+```
+
+
+
+
+```{r }
+
+knitr::kable(rising_one_second10,row.names = FALSE)
+```
+
+
+## ANY QUESTIONS?
+
+
+## Slide with R Output
+
+```{r cars, echo = TRUE}
+summary(cars)
+```
+
+## Slide with Plot
+
+```{r pressure}
+plot(pressure)
+```
+
